@@ -1,8 +1,5 @@
 from threading import Thread
 from MyModbus import *
-from sys rt
-
-path
 import sys
 
 cf = ConfigParser()
@@ -14,7 +11,7 @@ def verify_config():
     global cf, secs
     # ------------------------------------检测配置文件正确性------------------------------------
     try:
-        cf.read(sys.path.join(sys.path.dirname(sys.argv[0]), 'config.ini'))
+        cf.read('config.ini')
     except DuplicateSectionError:
         exit()
 
