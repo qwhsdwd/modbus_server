@@ -15,6 +15,7 @@ from os import path
 
 # MyModbus = MyModbus()
 threads = []
+proess=[]
 m1 = multiprocessing.Process()
 port = 502
 
