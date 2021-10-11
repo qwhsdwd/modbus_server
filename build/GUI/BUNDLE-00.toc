@@ -1,0 +1,3 @@
+([('GUI',
+   '/Users/quweihao/PycharmProjects/modbus_tcp_slave/dist/GUI',
+   'EXECUTABLE')],)
