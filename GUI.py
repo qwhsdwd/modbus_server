@@ -271,7 +271,7 @@ def run():
 
 def write_to_logFile(text):
     realtime = strftime("%Y-%m-%d %H:%M:%S ")
-    with open(path.join(path.dirname(sys.argv[0]), 'modbus.log'), "a") as f:
+    with open('modbus.log', "a") as f:
         f.write("{}\t\t\t\t\t{}\n".format(realtime, text))
 
 
@@ -320,7 +320,7 @@ def log_clear():
 
 
 def exit_():
-    sys.exit
+    exit()
 
 
 if __name__ == '__main__':
