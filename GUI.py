@@ -11,13 +11,13 @@ import modbus_tk
 import random
 from struct import pack
 from sys import exit
-from os import path
+from os import path,remove
 
-# MyModbus = MyModbus()
 threads = []
-proess=[]
 m1 = multiprocessing.Process()
 port = 502
+log_file_name = "modbus.log"
+config_file_name = "modbus_config.ini"
 
 
 def float_to_RTU(num_list):
@@ -87,7 +87,7 @@ def multiprocessing_(func):
 
 
 def my_mes1(text):
-    messagebox.showerror("配置文件有误", text)
+    messagebox.showerror("出现错误", text)
 
 
 def my_mes2():
@@ -99,7 +99,7 @@ def my_mes2():
 def write_to_logFile(text):
     realtime = strftime("%Y-%m-%d %H:%M:%S ")
     with open(path.join(path.dirname(sys.argv[0]), 'modbus.log'), "a") as f:
-        f.write("{}\t\t\t\t\t{}\n".format(realtime, text))
+        f.write("{}\t\t\t{}\n".format(realtime, text))
 
 
 def verify_config(configtext):
@@ -175,9 +175,9 @@ def verify_config(configtext):
 
 
 def write_config():
-    global port
+    global port, config
     log_signal = 1
-    config = ConfigParser()
+    # config = ConfigParser()
     configread = text1.get(0.0, END)
     if len(configread) <= 1:
         my_mes1("请先在文本框写入配置")
@@ -185,8 +185,12 @@ def write_config():
     # print(verify_config(configread))
     else:
         if verify_config(configread) is None:
-            config.read_string(configtext)
-            secs1 = config.sections()
+            # config.read_string(configtext)
+            with open("modbus_config.ini","w") as f:
+                f.write(configread)
+            # config_list.append(config)
+            # print(config_list)
+            # secs1 = config.sections()
             port = config.get("modbus_tk", "port")
             my_mes2()
         else:
@@ -220,7 +224,6 @@ def great_block_and_run(SERVER, slave_id, block_name, address, size, slave_type,
             sleep(loop_interval_time)
     elif slave_type == "float":
         SLAVE.add_block(block_name, modbus_tk.defines.HOLDING_REGISTERS, address, size * 2)  # 地址0，长度4
-        # print(block_name, modbus_tk.defines.HOLDING_REGISTERS, address, size)
         t = 0
         first_float_list = random_list_value(size, int(random_num[0][0]), int(random_num[0][1]))
         second_float_list = float_to_RTU(first_float_list)
@@ -240,7 +243,9 @@ def great_block_and_run(SERVER, slave_id, block_name, address, size, slave_type,
 
 
 def run():
-    global MyModbus
+    global MyModbus,config_list
+    config=ConfigParser()
+    config.read('modbus_config.ini')
     secs = config.sections()
     SERVER = modbus_tcp.TcpServer(port=502)
     for i in range(len(secs[1:])):
@@ -277,8 +282,11 @@ def write_to_logFile(text):
 
 def stop():
     # print(m1)
-    m1.terminate()
-    write_to_logFile("运行终止")
+    if not m1.is_alive():
+        my_mes1("已经终止")
+    else:
+        m1.terminate()
+        write_to_logFile("运行终止")
 
 
 def thread_it(func, *args):
@@ -320,7 +328,10 @@ def log_clear():
 
 
 def exit_():
-    exit()
+    if m1.is_alive():
+        my_mes1("请先停止运行再退出程序")
+    else:
+        exit()
 
 
 if __name__ == '__main__':
@@ -391,7 +402,13 @@ random_add_end = 2"""
     button_clear.place(x=80, y=760)
     button_exit.place(x=300, y=760)
     thread_it(read_log_file)
-    with open("modbus.log", "w") as f:
+
+    with open(log_file_name, "w") as f:
         f.write("")
+
+    if path.exists(config_file_name):
+        remove(config_file_name)
+
+
     # path.join(path.dirname(sys.argv[0]), 'GUI.py')
     root.mainloop()
