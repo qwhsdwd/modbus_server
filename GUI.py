@@ -1,4 +1,4 @@
-import multiprocessing
+from multiprocessing import Process,freeze_support
 from time import strftime, sleep
 from tkinter import *
 import tkinter.messagebox
@@ -12,9 +12,10 @@ import random
 from struct import pack
 from sys import exit
 from os import path, remove
+# import ctypes
 
 threads = []
-m1 = multiprocessing.Process()
+m1 = Process()
 port = 502
 log_file_name = "modbus.log"
 config_file_name = "modbus_config.ini"
@@ -81,7 +82,7 @@ def random_list_float(size, random_start, random_end, precision=0):
 
 def multiprocessing_(func):
     global m1
-    m1 = multiprocessing.Process(target=func)
+    m1 = Process(target=func)
     m1.start()
     # m1.join()
 
@@ -343,10 +344,13 @@ def exit_():
 
 
 if __name__ == '__main__':
-    # with open("modbus.log", "w") as f:
-    #     f.write("")
+    freeze_support()
+    with open(log_file_name,"w") as f:
+        f.write("")
+
     root = Tk()
     root.title("modbus数据模拟")
+    # root.iconbitmap(default='modbus_icon.ico')
     screenWidth = root.winfo_screenwidth()
     screenHeight = root.winfo_screenheight()
     w = 500
