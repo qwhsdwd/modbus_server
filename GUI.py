@@ -251,41 +251,32 @@ def run():
     if len(secs) == 0:
         my_mes1("请先写入配置再运行")
     else:
-        print(process_num)
-        if process_num >= 1:
-            my_mes1("请勿重复运行")
-        else:
-            # multiprocessing.Lock().acquire()
-            process_num += 1
-            # multiprocessing.Lock().release()
-            # mutex.release()
-            print(process_num)
-            SERVER = modbus_tcp.TcpServer(port=502)
-            for i in range(len(secs[1:])):
-                slave_id = int(config.get(secs[1:][i], "slave_id"))
-                block_name = config.get(secs[1:][i], "block_name")
-                address = int(config.get(secs[1:][i], "address"))
-                size = int(config.get(secs[1:][i], "quantity"))
-                slave_type = config.get(secs[1:][i], "type")
-                loop_interval_time = int(config.get(secs[1:][i], "loop_interval_time"))
-                if slave_type == "signed":
-                    t1 = (Thread(target=great_block_and_run,
-                                 args=(
-                                     SERVER, slave_id, block_name, address, size, slave_type, loop_interval_time, (),)))
-                    threads.append(t1)
-                elif slave_type == "float":
-                    random_start = config.get(secs[1:][i], "random_start")
-                    random_end = config.get(secs[1:][i], "random_end")
-                    random_add_start = config.get(secs[1:][i], "random_add_start")
-                    random_add_end = config.get(secs[1:][i], "random_add_end")
-                    t1 = (Thread(target=great_block_and_run,
-                                 args=(SERVER, slave_id, block_name, address, size, slave_type, loop_interval_time,
-                                       (random_start, random_end, random_add_start, random_add_end),)))
-                    threads.append(t1)
-            for j in threads:
-                j.start()
-            # for j in threads:
-            #     j.join()
+        SERVER = modbus_tcp.TcpServer(port=502)
+        for i in range(len(secs[1:])):
+            slave_id = int(config.get(secs[1:][i], "slave_id"))
+            block_name = config.get(secs[1:][i], "block_name")
+            address = int(config.get(secs[1:][i], "address"))
+            size = int(config.get(secs[1:][i], "quantity"))
+            slave_type = config.get(secs[1:][i], "type")
+            loop_interval_time = int(config.get(secs[1:][i], "loop_interval_time"))
+            if slave_type == "signed":
+                t1 = (Thread(target=great_block_and_run,
+                             args=(
+                                 SERVER, slave_id, block_name, address, size, slave_type, loop_interval_time, (),)))
+                threads.append(t1)
+            elif slave_type == "float":
+                random_start = config.get(secs[1:][i], "random_start")
+                random_end = config.get(secs[1:][i], "random_end")
+                random_add_start = config.get(secs[1:][i], "random_add_start")
+                random_add_end = config.get(secs[1:][i], "random_add_end")
+                t1 = (Thread(target=great_block_and_run,
+                             args=(SERVER, slave_id, block_name, address, size, slave_type, loop_interval_time,
+                                   (random_start, random_end, random_add_start, random_add_end),)))
+                threads.append(t1)
+        for j in threads:
+            j.start()
+        # for j in threads:
+        #     j.join()
 
 
 def write_to_logFile(text):
@@ -302,9 +293,6 @@ def stop():
     else:
         m1.terminate()
         write_to_logFile("运行终止")
-        mutex.acquire()
-        process_num -= 1
-        mutex.release()
 
 
 def thread_it(func, *args):
@@ -349,8 +337,6 @@ def exit_():
     if m1.is_alive():
         my_mes1("请先停止运行再退出程序")
     else:
-        if path.exists(log_file_name):
-            remove(log_file_name)
         if path.exists(config_file_name):
             remove(config_file_name)
         exit()
