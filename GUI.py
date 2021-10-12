@@ -5,13 +5,13 @@ import tkinter.messagebox
 from tkinter import messagebox
 from configparser import ConfigParser
 from configparser import DuplicateSectionError
-from threading import Thread
+from threading import Thread, Lock
 from modbus_tk import modbus_tcp
 import modbus_tk
 import random
 from struct import pack
 from sys import exit
-from os import path,remove
+from os import path, remove
 
 threads = []
 m1 = multiprocessing.Process()
@@ -186,7 +186,7 @@ def write_config():
     else:
         if verify_config(configread) is None:
             # config.read_string(configtext)
-            with open("modbus_config.ini","w") as f:
+            with open("modbus_config.ini", "w") as f:
                 f.write(configread)
             # config_list.append(config)
             # print(config_list)
@@ -243,35 +243,49 @@ def great_block_and_run(SERVER, slave_id, block_name, address, size, slave_type,
 
 
 def run():
-    global MyModbus,config_list
-    config=ConfigParser()
+    # global MyModbus, config_list
+    global process_num
+    config = ConfigParser()
     config.read('modbus_config.ini')
     secs = config.sections()
-    SERVER = modbus_tcp.TcpServer(port=502)
-    for i in range(len(secs[1:])):
-        slave_id = int(config.get(secs[1:][i], "slave_id"))
-        block_name = config.get(secs[1:][i], "block_name")
-        address = int(config.get(secs[1:][i], "address"))
-        size = int(config.get(secs[1:][i], "quantity"))
-        slave_type = config.get(secs[1:][i], "type")
-        loop_interval_time = int(config.get(secs[1:][i], "loop_interval_time"))
-        if slave_type == "signed":
-            t1 = (Thread(target=great_block_and_run,
-                         args=(SERVER, slave_id, block_name, address, size, slave_type, loop_interval_time, (),)))
-            threads.append(t1)
-        elif slave_type == "float":
-            random_start = config.get(secs[1:][i], "random_start")
-            random_end = config.get(secs[1:][i], "random_end")
-            random_add_start = config.get(secs[1:][i], "random_add_start")
-            random_add_end = config.get(secs[1:][i], "random_add_end")
-            t1 = (Thread(target=great_block_and_run,
-                         args=(SERVER, slave_id, block_name, address, size, slave_type, loop_interval_time,
-                               (random_start, random_end, random_add_start, random_add_end),)))
-            threads.append(t1)
-    for j in threads:
-        j.start()
-    # for j in threads:
-    #     j.join()
+    if len(secs) == 0:
+        my_mes1("请先写入配置再运行")
+    else:
+        print(process_num)
+        if process_num >= 1:
+            my_mes1("请勿重复运行")
+        else:
+            # multiprocessing.Lock().acquire()
+            process_num += 1
+            # multiprocessing.Lock().release()
+            # mutex.release()
+            print(process_num)
+            SERVER = modbus_tcp.TcpServer(port=502)
+            for i in range(len(secs[1:])):
+                slave_id = int(config.get(secs[1:][i], "slave_id"))
+                block_name = config.get(secs[1:][i], "block_name")
+                address = int(config.get(secs[1:][i], "address"))
+                size = int(config.get(secs[1:][i], "quantity"))
+                slave_type = config.get(secs[1:][i], "type")
+                loop_interval_time = int(config.get(secs[1:][i], "loop_interval_time"))
+                if slave_type == "signed":
+                    t1 = (Thread(target=great_block_and_run,
+                                 args=(
+                                     SERVER, slave_id, block_name, address, size, slave_type, loop_interval_time, (),)))
+                    threads.append(t1)
+                elif slave_type == "float":
+                    random_start = config.get(secs[1:][i], "random_start")
+                    random_end = config.get(secs[1:][i], "random_end")
+                    random_add_start = config.get(secs[1:][i], "random_add_start")
+                    random_add_end = config.get(secs[1:][i], "random_add_end")
+                    t1 = (Thread(target=great_block_and_run,
+                                 args=(SERVER, slave_id, block_name, address, size, slave_type, loop_interval_time,
+                                       (random_start, random_end, random_add_start, random_add_end),)))
+                    threads.append(t1)
+            for j in threads:
+                j.start()
+            # for j in threads:
+            #     j.join()
 
 
 def write_to_logFile(text):
@@ -282,11 +296,15 @@ def write_to_logFile(text):
 
 def stop():
     # print(m1)
+    global process_num
     if not m1.is_alive():
         my_mes1("已经终止")
     else:
         m1.terminate()
         write_to_logFile("运行终止")
+        mutex.acquire()
+        process_num -= 1
+        mutex.release()
 
 
 def thread_it(func, *args):
@@ -331,6 +349,10 @@ def exit_():
     if m1.is_alive():
         my_mes1("请先停止运行再退出程序")
     else:
+        if path.exists(log_file_name):
+            remove(log_file_name)
+        if path.exists(config_file_name):
+            remove(config_file_name)
         exit()
 
 
@@ -408,7 +430,6 @@ random_add_end = 2"""
 
     if path.exists(config_file_name):
         remove(config_file_name)
-
 
     # path.join(path.dirname(sys.argv[0]), 'GUI.py')
     root.mainloop()
