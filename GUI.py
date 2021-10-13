@@ -12,13 +12,15 @@ import random
 from struct import pack
 from sys import exit
 from os import path, remove
-# import ctypes
 
 threads = []
+# 线程列表
 m1 = Process()
-port = 502
+# 初始化多进程全局变量
 log_file_name = "modbus.log"
+# log文件名
 config_file_name = "modbus_config.ini"
+# config文件名
 
 # 将float列表数转换为RTU的float类型
 def float_to_RTU(num_list):

@@ -6,10 +6,9 @@ cf = ConfigParser()
 cf.read("./config.ini")
 secs = cf.sections()
 
-
+# 检测配置文件的正确性
 def verify_config():
     global cf, secs
-    # ------------------------------------检测配置文件正确性------------------------------------
     try:
         cf.read('config.ini')
     except DuplicateSectionError:
@@ -52,8 +51,6 @@ def verify_config():
     if len(slave_id_test_name_list) != len(set(slave_id_test_name_list)):
         print("slave_id中有重复,请检查后运行")
         exit(1)
-
-    # ------------------------------------检测配置文件正确性------------------------------------
 
 
 if __name__ == "__main__":
