@@ -20,14 +20,14 @@ port = 502
 log_file_name = "modbus.log"
 config_file_name = "modbus_config.ini"
 
-
+# 将float列表数转换为RTU的float类型
 def float_to_RTU(num_list):
     new_device_list = []
     for i in num_list:
         new_device_list.append(WriteFloat(i))
     return new_device_list
 
-
+# 将float 类型转换为 RTU的float格式
 def WriteFloat(float_value, reverse=False):
     y_bytes = pack('!f', float_value)
     # y_hex = bytes.hex(y_bytes)
@@ -40,7 +40,7 @@ def WriteFloat(float_value, reverse=False):
         v = [m, n]
     return v
 
-
+# 将转换为RTU的二维列表，转换为一维列表
 def float_final_list(float_double_list):
     new_list = []
     for i in range(len(float_double_list)):
@@ -48,14 +48,14 @@ def float_final_list(float_double_list):
             new_list.append(float_double_list[i][j])
     return new_list
 
-
+# 生成size 长度的0，1随机列表
 def random_list_Boolean(size):
     device_list = []
     for i in range(size):
         device_list.append(random.randint(0, 1))
     return device_list
 
-
+# 生成size 长度的random_start到random_end随机列表
 def random_list_int(size, random_start, random_end):
     device_list = []
     for i in range(size):
@@ -63,7 +63,7 @@ def random_list_int(size, random_start, random_end):
         device_list.append(random_num)
     return device_list
 
-
+# 生成size长度的float列表，random_start为开始值，random_end为结束值
 def random_list_value(size, random_start, random_end, precision=0):
     device_list = []
     for i in range(size):
@@ -75,34 +75,30 @@ def random_list_value(size, random_start, random_end, precision=0):
     return device_list
 
 
-def random_list_float(size, random_start, random_end, precision=0):
-    return 0
-    pass
-
-
+# 多进程的函数，包含初始化和启动
 def multiprocessing_(func):
     global m1
     m1 = Process(target=func)
     m1.start()
     # m1.join()
 
-
+# 错误提示窗口，可传入报错内容
 def my_mes1(text):
     messagebox.showerror("出现错误", text)
 
-
+# 询问窗口，是或否
 def my_mes2():
     ret = messagebox.askyesno("读取成功", "读取成功，是否开始运行？")
     if ret:
         multiprocessing_(run)
 
-
+# log写入log文件函数
 def write_to_logFile(text):
     realtime = strftime("%Y-%m-%d %H:%M:%S ")
     with open(path.join(path.dirname(sys.argv[0]), 'modbus.log'), "a") as f:
         f.write("{}\t\t\t{}\n".format(realtime, text))
 
-
+# 检测 config是否正确的接口
 def verify_config(configtext):
     global config
     config = ConfigParser()
@@ -174,7 +170,7 @@ def verify_config(configtext):
     #     return 1
     # ------------------------------------检测配置文件正确性------------------------------------
 
-
+# 将配置数据写入配置文件
 def write_config():
     global port, config
     log_signal = 1
@@ -197,13 +193,13 @@ def write_config():
         else:
             my_mes1(verify_config(configread))
 
-
+# 清除配置文件函数
 def write_template():
     # pass
     text1.delete(0.0, END)
     text1.insert(END, configtext)
 
-
+# 启动modbus SALVE
 def great_block_and_run(SERVER, slave_id, block_name, address, size, slave_type, loop_interval_time,
                         *random_num):
     write_to_logFile("slave{}启动".format(slave_id))
@@ -242,7 +238,7 @@ def great_block_and_run(SERVER, slave_id, block_name, address, size, slave_type,
             write_to_logFile("slave{}运行第{}次，间隔时间为{}秒".format(slave_id, t, loop_interval_time))
             sleep(loop_interval_time)
 
-
+# 读取配置文件并运行
 def run():
     # global MyModbus, config_list
     global process_num
@@ -279,23 +275,15 @@ def run():
         # for j in threads:
         #     j.join()
 
-
-def write_to_logFile(text):
-    realtime = strftime("%Y-%m-%d %H:%M:%S ")
-    with open('modbus.log', "a") as f:
-        f.write("{}\t\t\t\t\t{}\n".format(realtime, text))
-
-
+# 停止运行modbus
 def stop():
-    # print(m1)
-    global process_num
     if not m1.is_alive():
         my_mes1("已经终止")
     else:
         m1.terminate()
         write_to_logFile("运行终止")
 
-
+# 多线程重写，包含守护和开始
 def thread_it(func, *args):
     '''将函数打包进线程'''
     # 创建
@@ -307,14 +295,14 @@ def thread_it(func, *args):
     # 阻塞--卡死界面！
     # t.join()
 
-
+# 加上时间在日志文件中输出
 def showinfo(result):
     # print(result)
     realtime = strftime("%Y-%m-%d %H:%M:%S ")
     textvar = realtime + result  # 系统时间和传入结果
     text2.insert(END, textvar)  # 显示在text框里面
 
-
+# 读取log文件
 def read_log_file():
     fpath = "modbus.log"
     # with open(fpath, "r") as f:
@@ -329,11 +317,11 @@ def read_log_file():
         text2.see(END)
         # text2.update()
 
-
+# 清除log函数
 def log_clear():
     text2.delete(0.0, END)
 
-
+# 退出程序函数
 def exit_():
     if m1.is_alive():
         my_mes1("请先停止运行再退出程序")
@@ -344,7 +332,9 @@ def exit_():
 
 
 if __name__ == '__main__':
+    # 防止多进程出现错误
     freeze_support()
+    # 如果没有log文件则创建，有的话则清空
     with open(log_file_name,"w") as f:
         f.write("")
 
